@@ -1,0 +1,138 @@
+SYSTEM ROLE:
+You are upgrading THE CASHIER from Level 2 (Redirect Engine) 
+to Level 3 (Optimization Engine).
+
+STRICT RULES:
+- Do NOT modify existing working files.
+- Do NOT remove Level 2 functionality.
+- Operate in DRY MODE.
+- No external APIs.
+- No external network calls.
+- No database integration.
+- All logic must remain local and deterministic.
+
+GOAL:
+Transform THE CASHIER into an Optimization Engine that:
+1. Selects the highest priority provider based on commission weight.
+2. Supports provider fallback logic.
+3. Logs redirect events internally.
+4. Adds country auto-detection fallback.
+5. Remains fully stateless and deployable on Vercel.
+
+-----------------------------------
+STEP 1 — Create New File
+-----------------------------------
+
+Create a new file:
+
+/shared/optimizer.ts
+
+This module must:
+
+- Accept resolved gift mappings from Cashier.resolveGift()
+- Contain static provider configuration with:
+    - provider name
+    - commission weight
+    - priority score
+    - country availability
+- Sort providers by highest commission weight
+- Select best eligible provider for given country
+- Return optimized routing decision
+
+Example structure:
+
+type ProviderConfig = {
+  provider: string;
+  commissionWeight: number;
+  priority: number;
+  countries: string[];
+};
+
+export function optimizeRoute(
+  giftId: string,
+  country: string
+) {
+  // static provider matrix
+  // filter by country
+  // sort by commissionWeight DESC
+  // fallback if needed
+  // return best match
+}
+
+-----------------------------------
+STEP 2 — Extend Redirect Route
+-----------------------------------
+
+Update /pages/api/redirect.ts
+
+WITHOUT breaking existing functionality.
+
+New flow:
+
+1. Validate giftId and country.
+2. Call optimizeRoute().
+3. If optimization fails → fallback to Cashier.resolveGift().
+4. Log redirect event to console in structured format:
+   {
+     timestamp,
+     giftId,
+     country,
+     selectedProvider,
+     commissionWeight
+   }
+5. Perform HTTP 302 redirect.
+
+-----------------------------------
+STEP 3 — Add Country Auto-Fallback
+-----------------------------------
+
+If country is missing:
+- Default to "US"
+
+If provider not available in country:
+- Fallback to next highest commission provider
+
+-----------------------------------
+STEP 4 — Internal Logging Module
+-----------------------------------
+
+Create:
+
+/shared/logger.ts
+
+Simple function:
+
+export function logRedirect(event) {
+  console.log(JSON.stringify(event));
+}
+
+Use this inside redirect.ts.
+
+-----------------------------------
+STEP 5 — Maintain Clean Architecture
+-----------------------------------
+
+Final architecture must be:
+
+redirect.ts
+   → optimizer.ts
+       → cashier.ts
+   → logger.ts
+
+NO circular dependencies.
+
+-----------------------------------
+DEFINITION OF DONE:
+-----------------------------------
+
+Level 3 is complete when:
+
+- Redirect still returns HTTP 302
+- Provider selection is commission-optimized
+- Fallback logic works
+- Logs print structured event
+- No external dependencies added
+- Build succeeds
+
+Do not explain.
+Only implement.

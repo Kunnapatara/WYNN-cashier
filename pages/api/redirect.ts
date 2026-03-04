@@ -1,31 +1,49 @@
 import type { Request, Response } from 'express';
 import { Cashier } from "../../shared/cashier";
+import { optimizeRoute } from "../../shared/optimizer";
+import { logRedirect } from "../../shared/logger";
 
 /**
- * Level 2 Redirect Engine
- * Performs HTTP 302 redirect to resolved affiliate link
+ * Level 3 Optimization Engine
+ * Performs HTTP 302 redirect to optimized affiliate link
  */
 export default async function handler(req: Request, res: Response) {
-  const { giftId, country } = req.query;
+  let { giftId, country } = req.query;
 
-  if (!giftId || !country) {
+  // STEP 3: Add Country Auto-Fallback
+  if (!country) {
+    country = "US";
+  }
+
+  if (!giftId) {
     return res.status(400).json({
       error: "Missing parameters",
-      message: "giftId and country are required"
+      message: "giftId is required"
     });
   }
 
-  const resolved = Cashier.resolveGift(giftId as string, country as string);
+  // STEP 2: Call Optimization Logic
+  const optimized = optimizeRoute(giftId as string, country as string);
 
-  if (!resolved) {
+  if (!optimized) {
     return res.status(404).json({
       error: "Not Found",
-      message: "No mapping found for the provided giftId and country"
+      message: "No mapping or optimization found for the provided giftId and country"
     });
   }
 
-  // Generate affiliate link (In Level 2, this is a mock URL based on the provider)
-  const affiliateLink = `https://affiliate.wynn.com/redirect?provider=${resolved.provider}&giftId=${resolved.giftId}&country=${resolved.country}`;
+  // STEP 4: Internal Logging
+  logRedirect({
+    timestamp: new Date().toISOString(),
+    giftId: optimized.giftId,
+    country: optimized.country,
+    selectedProvider: optimized.selectedProvider,
+    commissionWeight: optimized.commissionWeight,
+    isFallback: optimized.isFallback
+  });
+
+  // Generate affiliate link
+  const affiliateLink = `https://affiliate.wynn.com/redirect?provider=${optimized.selectedProvider}&giftId=${optimized.giftId}&country=${optimized.country}`;
 
   // Perform HTTP 302 redirect
   return res.redirect(302, affiliateLink);
