@@ -12,6 +12,7 @@ export default async function handler(req: Request, res: Response) {
 
   // STEP 3: Add Country Auto-Fallback
   if (!country) {
+    console.log("COUNTRY DEFAULTED TO US");
     country = "US";
   }
 
@@ -25,7 +26,7 @@ export default async function handler(req: Request, res: Response) {
   // STEP 2: Call Optimization Logic
   console.log("OPTIMIZER START", { giftId, country });
   const optimized = optimizeRoute(giftId as string, country as string);
-  console.log("OPTIMIZER RESULT", { provider: optimized?.selectedProvider });
+  console.log("OPTIMIZER RESULT", optimized);
 
   if (!optimized) {
     return res.status(404).json({
@@ -48,5 +49,6 @@ export default async function handler(req: Request, res: Response) {
   const affiliateLink = `https://affiliate.wynn.com/redirect?provider=${optimized.selectedProvider}&giftId=${optimized.giftId}&country=${optimized.country}`;
 
   // Perform HTTP 302 redirect
+  console.log("REDIRECT STATUS: 302");
   return res.redirect(302, affiliateLink);
 }

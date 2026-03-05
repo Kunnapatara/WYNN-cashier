@@ -51,14 +51,19 @@ export function optimizeRoute(
     p.countries.includes(country)
   );
 
+  console.log("BEFORE SORT", eligibleProviders);
+
   if (eligibleProviders.length > 0) {
     // Sort by commissionWeight DESC, then by priority (lower is better)
-    const bestProvider = eligibleProviders.sort((a, b) => {
+    const sortedProviders = [...eligibleProviders].sort((a, b) => {
       if (b.commissionWeight !== a.commissionWeight) {
         return b.commissionWeight - a.commissionWeight;
       }
       return a.priority - b.priority;
-    })[0];
+    });
+
+    console.log("AFTER SORT", sortedProviders);
+    const bestProvider = sortedProviders[0];
 
     return {
       giftId,
@@ -70,6 +75,7 @@ export function optimizeRoute(
   }
 
   // If no optimized provider found, fallback to Cashier.resolveGift
+  console.log("FALLBACK ACTIVATED");
   const legacyResolved = Cashier.resolveGift(giftId, country);
   if (legacyResolved) {
     return {

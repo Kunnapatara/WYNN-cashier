@@ -1,0 +1,88 @@
+We are performing a full Level 3 Optimization Engine verification.
+
+Please execute the following actions step by step and print clear console outputs for each verification stage. Do NOT modify core logic. Only add temporary logs if needed.
+
+GOAL:
+Verify that Level 3 Optimization Engine is fully operational:
+- Optimizer is invoked
+- Commission-based sorting works
+- Country default works
+- Fallback works
+- Structured logging works
+- HTTP 302 redirect works
+
+========================================
+STEP 1 — Verify Optimizer Invocation
+========================================
+Ensure /pages/api/redirect.ts logs:
+
+console.log("OPTIMIZER START", { giftId, country });
+console.log("OPTIMIZER RESULT", optimized);
+
+Run a test request internally and print the logs.
+
+========================================
+STEP 2 — Verify Commission Sorting
+========================================
+In shared/optimizer.ts:
+Temporarily log provider list BEFORE and AFTER sorting.
+
+console.log("BEFORE SORT", providers);
+console.log("AFTER SORT", sortedProviders);
+
+Run optimizer once and print output.
+
+========================================
+STEP 3 — Verify Country Default
+========================================
+Trigger redirect without providing country.
+Ensure system defaults to "US".
+Print:
+
+console.log("COUNTRY DEFAULTED TO US");
+
+========================================
+STEP 4 — Verify Fallback Logic
+========================================
+Trigger redirect with unsupported country (e.g., XX).
+If no provider found, ensure fallback to Cashier.resolveGift().
+Print:
+
+console.log("FALLBACK ACTIVATED");
+
+========================================
+STEP 5 — Verify Structured Logging
+========================================
+Ensure logger prints ONE pure JSON object containing:
+
+{
+  timestamp,
+  giftId,
+  country,
+  selectedProvider,
+  commissionWeight
+}
+
+Print sample output in console.
+
+========================================
+STEP 6 — Verify HTTP 302
+========================================
+Simulate redirect call and confirm:
+
+Status Code: 302
+Location header exists
+
+Print:
+
+console.log("REDIRECT STATUS:", statusCode);
+
+========================================
+
+After completing all steps,
+print:
+
+"LEVEL 3 VERIFICATION COMPLETE"
+
+Do NOT deploy. Do NOT remove logs yet.
+Only verify and print console results.
