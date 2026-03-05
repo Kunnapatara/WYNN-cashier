@@ -23,7 +23,9 @@ export default async function handler(req: Request, res: Response) {
   }
 
   // STEP 2: Call Optimization Logic
+  console.log("OPTIMIZER START", { giftId, country });
   const optimized = optimizeRoute(giftId as string, country as string);
+  console.log("OPTIMIZER RESULT", { provider: optimized?.selectedProvider });
 
   if (!optimized) {
     return res.status(404).json({
