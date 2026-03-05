@@ -1,11 +1,13 @@
 import type { Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { Cashier } from "../../shared/cashier";
 import { optimizeRoute } from "../../shared/optimizer";
 import { logRedirect } from "../../shared/logger";
+import { trackClick } from "../../shared/tracker";
 
 /**
- * Level 3 Optimization Engine
- * Performs HTTP 302 redirect to optimized affiliate link
+ * Level 4 Phase 1 Optimization & Tracking Engine
+ * Performs HTTP 302 redirect to optimized affiliate link with click tracking
  */
 export default async function handler(req: Request, res: Response) {
   let { giftId, country } = req.query;
@@ -35,6 +37,9 @@ export default async function handler(req: Request, res: Response) {
     });
   }
 
+  // Generate clickId for tracking
+  const clickId = uuidv4();
+
   // STEP 4: Internal Logging
   logRedirect({
     timestamp: new Date().toISOString(),
@@ -45,8 +50,19 @@ export default async function handler(req: Request, res: Response) {
     isFallback: optimized.isFallback
   });
 
-  // Generate affiliate link
-  const affiliateLink = `https://affiliate.wynn.com/redirect?provider=${optimized.selectedProvider}&giftId=${optimized.giftId}&country=${optimized.country}`;
+  // Track the click internally
+  trackClick({
+    clickId,
+    giftId: optimized.giftId,
+    provider: optimized.selectedProvider,
+    country: optimized.country,
+    timestamp: new Date().toISOString()
+  });
+
+  console.log("CLICK TRACKED", { clickId });
+
+  // Generate affiliate link with clickId
+  const affiliateLink = `https://affiliate.wynn.com/redirect?provider=${optimized.selectedProvider}&giftId=${optimized.giftId}&country=${optimized.country}&clickId=${clickId}`;
 
   // Perform HTTP 302 redirect
   console.log("REDIRECT STATUS: 302");
