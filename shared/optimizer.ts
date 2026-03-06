@@ -46,23 +46,25 @@ export function optimizeRoute(
   giftId: string,
   country: string = "US"
 ): OptimizationResult | null {
-  // Filter providers by country availability
+
+  // STEP 1 — Filter providers by country
   const eligibleProviders = providers.filter((p) =>
     p.countries.includes(country)
   );
 
-  console.log("BEFORE SORT", eligibleProviders);
-
   if (eligibleProviders.length > 0) {
-    // Sort by commissionWeight DESC, then by priority (lower is better)
+
+    // STEP 2 — Sort providers
     const sortedProviders = [...eligibleProviders].sort((a, b) => {
+
       if (b.commissionWeight !== a.commissionWeight) {
         return b.commissionWeight - a.commissionWeight;
       }
+
       return a.priority - b.priority;
+
     });
 
-    console.log("AFTER SORT", sortedProviders);
     const bestProvider = sortedProviders[0];
 
     return {
@@ -74,13 +76,14 @@ export function optimizeRoute(
     };
   }
 
-  // If no optimized provider found, fallback to Cashier.resolveGift
-  console.log("FALLBACK ACTIVATED");
-  const legacyResolved = Cashier.resolveGift(giftId, country);
+  // STEP 3 — Fallback to THE CASHIER legacy resolver
+  const legacyResolved: ResolvedGift | null =
+    Cashier.resolveLegacy(giftId, country);
+
   if (legacyResolved) {
     return {
-      giftId,
-      country,
+      giftId: legacyResolved.giftId,
+      country: legacyResolved.country,
       selectedProvider: legacyResolved.provider,
       commissionWeight: legacyResolved.highestCommissionRate,
       isFallback: true,
